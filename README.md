@@ -1,2 +1,5 @@
-# fintech_patents
-Contain word done on fintech patents classification
+# Fintech Patents Classification
+
+This is the work related to fintech patents classification.
+
+
