@@ -53,6 +53,9 @@ def pickle_pytorch_models(model_path_, pickled_path):
 
     print(f'Model and Tokenizer pickled at:                  `{model_tokenizer_pickle_name_}`\n')
 
+    # Remove pretrained model
+    os.rmdir(model_path_)
+
     return model_tokenizer_pickle_name_
 
 
