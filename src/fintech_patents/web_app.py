@@ -1,11 +1,5 @@
 import streamlit as st
-import torch
-from transformers import (AutoConfig,
-                          AutoModelForSequenceClassification,
-                          AutoTokenizer,
-                          set_seed)
-
-
+import pickle
 
 IDS_LABELS = {0: 'insurance',
               1: 'payments',
@@ -13,6 +7,7 @@ IDS_LABELS = {0: 'insurance',
               3: 'fraud',
               4: 'data analytics',
               5: 'non-fintech'}
+
 
 def app_details():
     r"""
@@ -43,71 +38,46 @@ def custom(name):
     user_input = st.text_area("Patent Text Goes Here:", default_patent)
 
     if st.button('Get Prediction!'):
-        label = inference_transformer(model_name_or_path='gmihaila/distilbert-base-uncased',
+        label = inference_transformer(model_pickle_path='distilbert-base-uncased.pickle',
                                       text_input=user_input, ids_labels=IDS_LABELS)
 
         st.text(label)
 
 
-def inference_transformer(model_name_or_path, text_input, ids_labels):
-    # Look for gpu to use. Will use `cpu` by default if no gpu found.
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # Set seed for reproducibility,
-    set_seed(123)
-
-    # Get model configuration.
-    print('Loading configuraiton...')
-    model_config = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_name_or_path,
-                                              )
-
-    # Get model's tokenizer.
-    print('Loading tokenizer...')
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_name_or_path)
-
-    # Get the actual model.
-    print('Loading model...')
-    model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_name_or_path,
-                                                               config=model_config)
-
-    # Load model to defined device.
-    model.to(device)
-    print('Model loaded to `%s`' % device)
+def inference_transformer(model_pickle_path, text_input, ids_labels):
+    with open(model_pickle_path, 'rb') as handle:
+        tokenizer, model = pickle.load(handle)
 
     inputs = tokenizer(text=text_input, add_special_tokens=True, truncation=True, padding=True, return_tensors='pt')
 
-    model.eval()
-    # move batch to device
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+    # Forward pass, calculate logit predictions.
+    # This will return the logits rather than the loss because we have
+    # not provided labels.
+    # token_type_ids is the same as the "segment ids", which
+    # differentiates sentence 1 and 2 in 2-sentence tasks.
+    # The documentation for this `model` function is here:
+    # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
+    outputs = model(**inputs)
 
-    with torch.no_grad():
-        # Forward pass, calculate logit predictions.
-        # This will return the logits rather than the loss because we have
-        # not provided labels.
-        # token_type_ids is the same as the "segment ids", which
-        # differentiates sentence 1 and 2 in 2-sentence tasks.
-        # The documentation for this `model` function is here:
-        # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
-        outputs = model(**inputs)
+    # The call to `model` always returns a tuple, so we need to pull the
+    # loss value out of the tuple along with the logits. We will use logits
+    # later to to calculate training accuracy.
+    logits = outputs[0]
 
-        # The call to `model` always returns a tuple, so we need to pull the
-        # loss value out of the tuple along with the logits. We will use logits
-        # later to to calculate training accuracy.
-        logits = outputs[0]
+    # Get probablities from logits
+    # probs = torch.softmax(logits, dim=-1)
 
-        # Get probablities from logits
-        probs = torch.softmax(logits, dim=-1)
+    # Move logits and labels to CPU
+    logits = logits.detach().cpu().numpy()
 
-        # Move logits and labels to CPU
-        logits = logits.detach().cpu().numpy()
+    # get predicitons to list
+    predict_content = logits.argmax(axis=-1).flatten().tolist()[0]
 
-        # get predicitons to list
-        predict_content = logits.argmax(axis=-1).flatten().tolist()[0]
+    # Predicted label
+    label = ids_labels.get(predict_content, 'Unknown')
 
-        # Predicted label
-        label = ids_labels.get(predict_content, 'Unknown')
+    return label
 
-        return label
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
