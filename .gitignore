@@ -1,0 +1,9 @@
+.idea/
+.DS_Store
+__pycache__/
+/build/
+/dist/
+/src/fintech_patents.egg-info/
+pretrained_models/
+pickled_models/
+config.ini

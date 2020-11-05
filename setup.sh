@@ -1,3 +1,7 @@
+python src/fintech_patents/downloads_models.py
+
+python src/fintech_patents/pickle_models.py
+
 mkdir -p ~/.streamlit/
 
 echo "\
