@@ -56,39 +56,39 @@ def download_from_config(path_config_file, path_downloaded_models):
         # Download the .zip from Google Drive.
         gdown.download(url=download_link, output=file_name, quiet=False)
 
-        # # Check if file actually exists
-        # if os.path.isfile(file_name):
-        #
-        #     # File .zip exists. Let's unzip it
-        #     with zipfile.ZipFile(file_name, "r") as zip_ref:
-        #
-        #         # Get info of zip.
-        #         zip_info = zip_ref.infolist()
-        #
-        #         # Get folder name if first is a folder.
-        #         folder_name = zip_info[0].filename if zip_info[0].is_dir() else None
-        #
-        #         # Normalize folder name
-        #         folder_name = os.path.normpath(folder_name)
-        #
-        #         # Extract all zip components.
-        #         zip_ref.extractall(path=path_downloaded_models)
-        #
-        #     # Find out name of new folder
-        #     if folder_name is None:
-        #
-        #         # .zip does not have a main folder. Skip this section of config file.
-        #         print('Zip does not have folder!')
-        #         continue
-        #
-        #     # Add model path to section.
-        #     config.set(section, 'model_path', os.path.join(path_downloaded_models, folder_name))
-        #
-        #     # Print info of model path.
-        #     print(f'Unzip to: {os.path.join(path_downloaded_models, folder_name)}')
-        #
-        #     # Remove .zip to keep memory clean
-        #     os.remove(file_name)
+        # Check if file actually exists
+        if os.path.isfile(file_name):
+
+            # File .zip exists. Let's unzip it
+            with zipfile.ZipFile(file_name, "r") as zip_ref:
+
+                # Get info of zip.
+                zip_info = zip_ref.infolist()
+
+                # Get folder name if first is a folder.
+                folder_name = zip_info[0].filename if zip_info[0].is_dir() else None
+
+                # Normalize folder name
+                folder_name = os.path.normpath(folder_name)
+
+                # Extract all zip components.
+                zip_ref.extractall(path=path_downloaded_models)
+
+            # Find out name of new folder
+            if folder_name is None:
+
+                # .zip does not have a main folder. Skip this section of config file.
+                print('Zip does not have folder!')
+                continue
+
+            # Add model path to section.
+            config.set(section, 'model_path', os.path.join(path_downloaded_models, folder_name))
+
+            # Print info of model path.
+            print(f'Unzip to: {os.path.join(path_downloaded_models, folder_name)}')
+
+            # Remove .zip to keep memory clean
+            os.remove(file_name)
 
         # Separation line.
         print('--------------------------------------------------------------------------------------')

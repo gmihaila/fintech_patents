@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run src/fintech_patents/web_app.py
+web: sh setup.sh && wget -nc https://www.dropbox.com/s/wu3ofv6u7ehaj01/distilbert-base-uncased.pickle && streamlit run src/fintech_patents/web_app.py
