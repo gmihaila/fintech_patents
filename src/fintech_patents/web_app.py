@@ -38,10 +38,11 @@ def custom(name):
     user_input = st.text_area("Patent Text Goes Here:", default_patent)
 
     if st.button('Get Prediction!'):
-        label = inference_transformer(model_name_or_path='gmihaila/distilbert-base-uncased',
-                                      text_input=user_input, ids_labels=IDS_LABELS)
+        # label = inference_transformer(model_name_or_path='gmihaila/distilbert-base-uncased',
+        #                               text_input=user_input, ids_labels=IDS_LABELS)
 
-        st.text(label)
+        # st.text(label)
+        st.text('Some Label')
 
 
 def inference_transformer(model_name_or_path, text_input, ids_labels):
