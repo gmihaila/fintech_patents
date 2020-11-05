@@ -1,6 +1,8 @@
 import streamlit as st
 import pickle
 
+tokenizer, model = None, None
+
 IDS_LABELS = {0: 'insurance',
               1: 'payments',
               2: 'investment',
@@ -8,6 +10,12 @@ IDS_LABELS = {0: 'insurance',
               4: 'data analytics',
               5: 'non-fintech'}
 
+@st.cache(allow_output_mutation=True)
+def load_model_tokenizer(model_pickle_path):
+    with open(model_pickle_path, 'rb') as handle:
+        tokenizer, model = pickle.load(handle)
+
+    return tokenizer, model
 
 def app_details():
     r"""
@@ -23,9 +31,10 @@ def app_details():
 
     return
 
+def run_prediciton():
 
-# @st.cache(suppress_st_warning=True)
-def custom(name):
+    global tokenizer, model
+
     st.selectbox('Choose Model', ['Bert', 'RoBerTa'])
 
     default_patent = """Methods and systems for managing financial data to measure the liquidity risk for a client involve, for example, 
@@ -38,16 +47,15 @@ def custom(name):
     user_input = st.text_area("Patent Text Goes Here:", default_patent)
 
     if st.button('Get Prediction!'):
-        label = inference_transformer(model_pickle_path='distilbert-base-uncased.pickle',
-                                      text_input=user_input, ids_labels=IDS_LABELS)
+        label = make_prediction(model, tokenizer, text_input=user_input, ids_labels=IDS_LABELS)
+        # label = inference_transformer(model_pickle_path='distilbert-base-uncased.pickle',
+        #                               text_input=user_input, ids_labels=IDS_LABELS)
 
         st.text(label)
 
 
-def inference_transformer(model_pickle_path, text_input, ids_labels):
-    with open(model_pickle_path, 'rb') as handle:
-        tokenizer, model = pickle.load(handle)
 
+def make_prediction(model, tokenizer, text_input, ids_labels):
     inputs = tokenizer(text=text_input, add_special_tokens=True, truncation=True, padding=True, return_tensors='pt')
 
     # Forward pass, calculate logit predictions.
@@ -81,7 +89,10 @@ def inference_transformer(model_pickle_path, text_input, ids_labels):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
+    tokenizer, model = load_model_tokenizer('distilbert-base-uncased.pickle')
+
     # Setup app details
     app_details()
 
-    custom('PyCharm')
+    run_prediciton()
