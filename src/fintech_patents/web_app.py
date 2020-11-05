@@ -10,7 +10,7 @@ IDS_LABELS = {0: 'insurance',
               4: 'data analytics',
               5: 'non-fintech'}
 
-@st.cache(allow_output_mutation=True)
+# @st.cache(allow_output_mutation=True)
 def load_model_tokenizer(model_pickle_path):
     with open(model_pickle_path, 'rb') as handle:
         tokenizer, model = pickle.load(handle)
