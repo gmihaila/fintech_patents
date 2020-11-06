@@ -7,4 +7,3 @@ __pycache__/
 pretrained_models/
 pickled_models/
 config.ini
-distilbert-base-uncased.pickle

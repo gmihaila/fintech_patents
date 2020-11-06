@@ -24,8 +24,8 @@ from transformers import (AutoConfig,
                           AutoModelForSequenceClassification,
                           AutoTokenizer,
                           set_seed)
-# Default config file.
-CONFIG_FILE = 'config.ini'
+from settings import CONFIG_FILE
+
 
 
 def pickle_pytorch_models(model_path_, pickled_path):

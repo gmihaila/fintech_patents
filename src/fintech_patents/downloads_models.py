@@ -15,16 +15,15 @@
 """Download files and read configuration file"""
 
 import configparser
+import streamlit as st
 import gdown
 import os
 import zipfile
 import argparse
-
-# Default config file.
-CONFIG_FILE = 'config.ini'
+from settings import CONFIG_FILE
 
 
-def download_from_config(path_config_file, path_downloaded_models):
+def download_from_config(path_config_file, path_downloaded_models, use_streamlit=False):
     r"""
     Download all pretrained models using config file and updating the config file with each model's path.
 
@@ -46,6 +45,10 @@ def download_from_config(path_config_file, path_downloaded_models):
 
     # Parse each section in the config file.
     for section in config.sections():
+
+        # Streamlit info
+        if use_streamlit:
+            st.write(f'  `{section}`')
 
         # Get the Google Drive download link
         download_link = config.get(section, 'google_drive_zip_link', fallback=None)
@@ -86,6 +89,10 @@ def download_from_config(path_config_file, path_downloaded_models):
 
             # Print info of model path.
             print(f'Unzip to: {os.path.join(path_downloaded_models, folder_name)}')
+
+            # Streamlit info
+            if use_streamlit:
+                st.write(f'  Unzip to: `{os.path.join(path_downloaded_models, folder_name)}`')
 
             # Remove .zip to keep memory clean
             os.remove(file_name)
