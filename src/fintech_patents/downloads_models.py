@@ -95,7 +95,10 @@ def download_from_config(path_config_file, path_downloaded_models, use_streamlit
                 st.write(f'  Unzip to: `{os.path.join(path_downloaded_models, folder_name)}`')
 
             # Remove .zip to keep memory clean
-            os.remove(file_name)
+            try:
+                os.remove(file_name)
+            except OSError as e:
+                print("Error: %s : %s" % (file_name, e.strerror))
 
         # Separation line.
         print('--------------------------------------------------------------------------------------')

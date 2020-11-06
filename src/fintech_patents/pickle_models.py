@@ -60,7 +60,6 @@ def pickle_pytorch_models(model_path_, pickled_path):
     except OSError as e:
         print("Error: %s : %s" % (model_path_, e.strerror))
 
-
     return model_tokenizer_pickle_name_
 
 
