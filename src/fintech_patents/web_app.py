@@ -36,11 +36,23 @@ def app_details():
 
     return
 
-def run_prediciton():
 
-    # global tokenizer, model
+def run_prediciton(config_file):
 
-    st.selectbox('Choose Model', ['Bert', 'RoBerTa'])
+    models_display_names = [config[sec]['display_name'] for sec in config_file.sections()]
+    model_selected = st.selectbox('Choose Model', list(models_display_names))
+
+
+    # model_selected = models_display_names[0] if model_selected is None else model_selected
+
+    model_description = [config_file[sec]['description'] for sec in config_file.sections() if config_file[sec]['display_name'] == model_selected][0]
+
+    model_tokenizer_pickle_path = [config_file[sec]['model_tokenizer_pickle_path'] for sec in config_file.sections() if config_file[sec]['display_name'] == model_selected][0]
+
+    st.write('Current Model Selected: ', model_selected)
+
+    st.write('Model description: ', model_description)
+
 
     default_patent = """Methods and systems for managing financial data to measure the liquidity risk for a client involve, for example, 
     implementing, using a computer having a processor coupled to memory, client-defined templates for a cash flow forecasting module. Also using the computer,
@@ -53,7 +65,7 @@ def run_prediciton():
 
     if st.button('Get Prediction!'):
         # label = make_prediction(model, tokenizer, text_input=user_input, ids_labels=IDS_LABELS)
-        label = inference_transformer(model_pickle_path='pickled_models/distilbert-base-uncased.pickle',
+        label = inference_transformer(model_pickle_path=model_tokenizer_pickle_path,
                                       text_input=user_input, ids_labels=IDS_LABELS)
 
         st.text(label)
@@ -132,8 +144,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Description')
 
     # Path of modified config file
-    parser.add_argument('--path_config_file', help='Path where all pretrained models are stored pickled.',
+    parser.add_argument('--path_model_config_file', help='Path where all pretrained models are stored pickled.',
                         type=str, default='models_config.ini')
+    # Path of modified config file
+    parser.add_argument('--path_config_file', help='Path where final config file containing all pickled models.', type=str, default='config.ini')
 
     # Path of pretrained downloaded models
     parser.add_argument('--path_models', help='Path where all pretrained models are stored pickled.',
@@ -146,38 +160,42 @@ if __name__ == '__main__':
     # Parse arguments
     args = parser.parse_args()
 
-
-    # Create folder if doesn't exists
-    os.mkdir(args.path_models) if not os.path.isdir(args.path_models) else None
-
-    # Create folder if doesn't exists
-    os.mkdir(args.model_tokenizer_pickle_path) if not os.path.isdir(args.model_tokenizer_pickle_path) else None
-
-    # Download all pretrained models and updated config file
-    download_from_config(args.path_config_file, args.path_models)
-
     # Create config parser.
     config = configparser.ConfigParser()
 
-    # Read config file from path.
-    config.read(CONFIG_FILE)
+    # If no config file is present - run preconfiguring
+    if not os.path.isfile(args.path_config_file):
+        # Create folder if doesn't exists
+        os.mkdir(args.path_models) if not os.path.isdir(args.path_models) else None
 
-    # Parse each section in the config file.
-    for section in config.sections():
-        # Get the Google Drive download link
-        model_path = config.get(section, 'model_path', fallback='')
+        # Create folder if doesn't exists
+        os.mkdir(args.model_tokenizer_pickle_path) if not os.path.isdir(args.model_tokenizer_pickle_path) else None
 
-        # Check if file actually exists
-        if os.path.isdir(model_path):
-            model_tokenizer_pickle_name = pickle_pytorch_models(model_path_=model_path,
-                                                                pickled_path=args.model_tokenizer_pickle_path)
-            # Add pickled model path to section.
-            config.set(section, 'model_tokenizer_pickle_path', model_tokenizer_pickle_name)
+        # Download all pretrained models and updated config file
+        download_from_config(args.path_model_config_file, args.path_models)
 
+        # Read config file from path.
+        config.read(args.path_config_file)
+
+        # Parse each section in the config file.
+        for section in config.sections():
+            # Get the Google Drive download link
+            model_path = config.get(section, 'model_path', fallback='')
+
+            # Check if file actually exists
+            if os.path.isdir(model_path):
+                model_tokenizer_pickle_name = pickle_pytorch_models(model_path_=model_path,
+                                                                    pickled_path=args.model_tokenizer_pickle_path)
+                # Add pickled model path to section.
+                config.set(section, 'model_tokenizer_pickle_path', model_tokenizer_pickle_name)
+
+    else:
+        # Read configuraiton file
+        config.read(args.path_config_file)
 
     # Setup app details
     app_details()
 
-    run_prediciton()
+    run_prediciton(config_file=config)
 
-    print(f'\nFinished running `{__file__}`!')
+    # print(f'\nFinished running `{__file__}`!')
