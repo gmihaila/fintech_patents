@@ -1,5 +1,10 @@
 import streamlit as st
 import pickle
+from downloads_models import download_from_config, CONFIG_FILE
+from pickle_models import pickle_pytorch_models
+import configparser
+import argparse
+import os
 
 tokenizer, model = None, None
 
@@ -33,7 +38,7 @@ def app_details():
 
 def run_prediciton():
 
-    global tokenizer, model
+    # global tokenizer, model
 
     st.selectbox('Choose Model', ['Bert', 'RoBerTa'])
 
@@ -47,12 +52,11 @@ def run_prediciton():
     user_input = st.text_area("Patent Text Goes Here:", default_patent)
 
     if st.button('Get Prediction!'):
-        label = make_prediction(model, tokenizer, text_input=user_input, ids_labels=IDS_LABELS)
-        # label = inference_transformer(model_pickle_path='distilbert-base-uncased.pickle',
-        #                               text_input=user_input, ids_labels=IDS_LABELS)
+        # label = make_prediction(model, tokenizer, text_input=user_input, ids_labels=IDS_LABELS)
+        label = inference_transformer(model_pickle_path='pickled_models/distilbert-base-uncased.pickle',
+                                      text_input=user_input, ids_labels=IDS_LABELS)
 
         st.text(label)
-
 
 
 def make_prediction(model, tokenizer, text_input, ids_labels):
@@ -87,12 +91,93 @@ def make_prediction(model, tokenizer, text_input, ids_labels):
     return label
 
 
+def inference_transformer(model_pickle_path, text_input, ids_labels):
+
+    with open(model_pickle_path, 'rb') as handle:
+        tokenizer, model = pickle.load(handle)
+    inputs = tokenizer(text=text_input, add_special_tokens=True, truncation=True, padding=True, return_tensors='pt')
+
+    # Forward pass, calculate logit predictions.
+    # This will return the logits rather than the loss because we have
+    # not provided labels.
+    # token_type_ids is the same as the "segment ids", which
+    # differentiates sentence 1 and 2 in 2-sentence tasks.
+    # The documentation for this `model` function is here:
+    # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
+    outputs = model(**inputs)
+
+    # The call to `model` always returns a tuple, so we need to pull the
+    # loss value out of the tuple along with the logits. We will use logits
+    # later to to calculate training accuracy.
+    logits = outputs[0]
+
+    # Get probablities from logits
+    # probs = torch.softmax(logits, dim=-1)
+
+    # Move logits and labels to CPU
+    logits = logits.detach().cpu().numpy()
+
+    # get predicitons to list
+    predict_content = logits.argmax(axis=-1).flatten().tolist()[0]
+
+    # Predicted label
+    label = ids_labels.get(predict_content, 'Unknown')
+
+    return label
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    # Parse any input arguments
+    parser = argparse.ArgumentParser(description='Description')
 
-    tokenizer, model = load_model_tokenizer('distilbert-base-uncased.pickle')
+    # Path of modified config file
+    parser.add_argument('--path_config_file', help='Path where all pretrained models are stored pickled.',
+                        type=str, default='models_config.ini')
+
+    # Path of pretrained downloaded models
+    parser.add_argument('--path_models', help='Path where all pretrained models are stored pickled.',
+                        type=str, default='pretrained_models')
+
+    # Path of pickled models and tokenizers
+    parser.add_argument('--model_tokenizer_pickle_path', help='Path where all pretrained models are stored pickled.',
+                        type=str, default='pickled_models')
+
+    # Parse arguments
+    args = parser.parse_args()
+
+
+    # Create folder if doesn't exists
+    os.mkdir(args.path_models) if not os.path.isdir(args.path_models) else None
+
+    # Create folder if doesn't exists
+    os.mkdir(args.model_tokenizer_pickle_path) if not os.path.isdir(args.model_tokenizer_pickle_path) else None
+
+    # Download all pretrained models and updated config file
+    download_from_config(args.path_config_file, args.path_models)
+
+    # Create config parser.
+    config = configparser.ConfigParser()
+
+    # Read config file from path.
+    config.read(CONFIG_FILE)
+
+    # Parse each section in the config file.
+    for section in config.sections():
+        # Get the Google Drive download link
+        model_path = config.get(section, 'model_path', fallback='')
+
+        # Check if file actually exists
+        if os.path.isdir(model_path):
+            model_tokenizer_pickle_name = pickle_pytorch_models(model_path_=model_path,
+                                                                pickled_path=args.model_tokenizer_pickle_path)
+            # Add pickled model path to section.
+            config.set(section, 'model_tokenizer_pickle_path', model_tokenizer_pickle_name)
+
 
     # Setup app details
     app_details()
 
     run_prediciton()
+
+    print(f'\nFinished running `{__file__}`!')
