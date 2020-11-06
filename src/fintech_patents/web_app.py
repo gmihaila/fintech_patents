@@ -178,5 +178,5 @@ if __name__ == '__main__':
     # Read configuration file
     config.read(args.path_config_file)
 
-
+    # Run modeling part of the app.
     app_modeling(config_file=config)
