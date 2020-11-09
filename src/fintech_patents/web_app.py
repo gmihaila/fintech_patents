@@ -33,11 +33,11 @@ def app_header():
     """
 
     # Title
-    st.title('Patent classification with Transformers')
+    st.title('FinTech Patent Classification')
     # Subtitle
-    st.subheader('Make predictions')
+    # st.subheader('Make predictions')
     # Description
-    st.write('More details go here...')
+    # st.write('More details go here...')
 
     return
 
@@ -51,27 +51,38 @@ def app_modeling(config_file):
     models_display_names = [config[sec]['display_name'] for sec in config_file.sections()]
     model_selected = st.selectbox('Choose Model', list(models_display_names))
 
-    model_description = [config_file[sec]['description'] for sec in config_file.sections() if config_file[sec]['display_name'] == model_selected][0]
+    model_description = [config_file[sec]['description'] for sec in config_file.sections() if
+                         config_file[sec]['display_name'] == model_selected][0]
 
-    model_tokenizer_pickle_path = [config_file[sec]['model_tokenizer_pickle_path'] for sec in config_file.sections() if config_file[sec]['display_name'] == model_selected][0]
+    model_tokenizer_pickle_path = [config_file[sec]['model_tokenizer_pickle_path'] for sec in config_file.sections() if
+                                   config_file[sec]['display_name'] == model_selected][0]
 
-    st.write('Current Model Selected: ', model_selected)
+    st.markdown(f'Current Model Selected: **{model_selected}**')
 
-    st.write('Model description: ', model_description)
+    st.markdown(f'Model description: *{model_description}*')
 
     if os.path.isfile(SAMPLE_ABSTRACT):
         default_patent = io.open(SAMPLE_ABSTRACT, mode='r', encoding='utf-8').read()
     else:
         default_patent = ''
 
-    user_input = st.text_area(label="Patent Text Goes Here:", value=default_patent, height=400)
+    st.markdown('### Patent Text:')
+    user_input = st.text_area(label="Copy&Paste here:", value=default_patent, height=400)
+
+
 
     if st.button('Get Prediction!'):
         # label = make_prediction(model, tokenizer, text_input=user_input, ids_labels=IDS_LABELS)
-        label = inference_transformer(model_pickle_path=model_tokenizer_pickle_path,
-                                      text_input=user_input, ids_labels=IDS_LABELS)
+        label, labels_percents = inference_transformer(model_pickle_path=model_tokenizer_pickle_path,
+                                                       text_input=user_input, ids_labels=IDS_LABELS)
 
-        st.text(label)
+        st.markdown(f'### **{label}**')
+
+        # st.markdown('### Confidence:')
+
+        for label, percent in labels_percents.items():
+            custom_label = '_'.join(label.split())
+            st.markdown(f'![percentage](https://progress-bar.dev/{int(percent)}/?title={custom_label})')
 
     return
 
@@ -154,7 +165,8 @@ if __name__ == '__main__':
     parser.add_argument('--path_model_config_file', help='Path where all pretrained models are stored pickled.',
                         type=str, default='models_config.ini')
     # Path of modified config file
-    parser.add_argument('--path_config_file', help='Path where final config file containing all pickled models.', type=str, default=CONFIG_FILE)
+    parser.add_argument('--path_config_file', help='Path where final config file containing all pickled models.',
+                        type=str, default=CONFIG_FILE)
 
     # Path of pretrained downloaded models
     parser.add_argument('--path_models', help='Path where all pretrained models are stored pickled.',

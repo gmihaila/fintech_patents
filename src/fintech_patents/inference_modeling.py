@@ -15,6 +15,19 @@
 """Deal with model inference."""
 
 import pickle
+import numpy as np
+
+
+def softmax(vector):
+    r"""
+    calculate the softmax of a vector
+
+    Used fom: https://machinelearningmastery.com/softmax-activation-function-with-python/
+    '"""
+
+    e = np.exp(vector)
+
+    return e / e.sum()
 
 
 def inference_transformer(model_pickle_path, text_input, ids_labels):
@@ -42,11 +55,16 @@ def inference_transformer(model_pickle_path, text_input, ids_labels):
     # later to to calculate training accuracy.
     logits = outputs[0]
 
-    # Get probablities from logits
-    # probs = torch.softmax(logits, dim=-1)
-
     # Move logits and labels to CPU
     logits = logits.detach().cpu().numpy()
+
+    # Get probabilities from logits
+    # probs = torch.softmax(logits, dim=-1) # using pytroch
+    probs = softmax(vector=logits)[0] # Using custom function. No need to load torch.
+    # Make probabilities % 0-100
+    probs *= 100
+    # Round to 2 decimal places.
+    probs = np.around(probs, 2)
 
     # get predicitons to list
     predict_content = logits.argmax(axis=-1).flatten().tolist()[0]
@@ -54,4 +72,6 @@ def inference_transformer(model_pickle_path, text_input, ids_labels):
     # Predicted label
     label = ids_labels.get(predict_content, 'Unknown')
 
-    return label
+    labels_percents = {lab: prob for lab, prob in zip(ids_labels.values(), probs)}
+
+    return label, labels_percents
