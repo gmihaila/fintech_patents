@@ -29,6 +29,8 @@ from graphics import (html_highlight_text,
 from settings import (CONFIG_FILE, IDS_LABELS, LABELS_COLORS,
                       SAMPLE_ABSTRACT,
                       )
+import psutil
+import sys
 
 
 def app_header():
@@ -42,6 +44,21 @@ def app_header():
     # st.subheader('Make predictions')
     # Description
     # st.write('More details go here...')
+    
+    st.write('/ncheck resouces')
+    st.write('python verison')
+    st.write(sys.version)
+    
+    st.write('virtual_memory')
+    st.write(psutil.virtual_memory())
+    
+    st.write('disk_partitions')
+    st.write(psutil.disk_partitions())
+    
+    st.write('disk_usage')
+    st.write(psutil.disk_usage('/'))
+    
+    st.write('end resouces/n')
 
     return
 
@@ -166,23 +183,7 @@ def preconfigure_app(arguments):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     
-    import psutil
-    import sys
     
-    print('/ncheck resouces')
-    print('python verison')
-    print(sys.version)
-    
-    print('virtual_memory')
-    print(psutil.virtual_memory())
-    
-    print('disk_partitions')
-    print(psutil.disk_partitions())
-    
-    print('disk_usage')
-    print(psutil.disk_usage('/'))
-    
-    print('end resouces/n')
    
     # Start with app header.
     app_header()
