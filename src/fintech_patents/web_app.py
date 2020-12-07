@@ -115,9 +115,9 @@ def app_modeling(config_file):
         
         try:
           del fig, html_text, label, labels_percents, attentions, tokens
-          gc.collect()
         except:
           print('nothing to clean')
+    gc.collect()
 
     return
 
