@@ -29,10 +29,6 @@ from graphics import (html_highlight_text,
 from settings import (CONFIG_FILE, IDS_LABELS, LABELS_COLORS,
                       SAMPLE_ABSTRACT,
                       )
-from matplotlib.backends.backend_agg import RendererAgg
-# Added fix from https://docs.streamlit.io/en/stable/deploy_streamlit_app.html
-_lock = RendererAgg.lock
-
 import psutil
 import sys
 import gc
@@ -94,34 +90,34 @@ def app_modeling(config_file):
 
     st.markdown('### Attention intensity')
     intensity = st.slider(label='Intensity of text color highlight in predictions:',
-                          min_value=1, max_value=100, value=10)
-    with _lock:
-        if st.button('Get Prediction!'):
-            with st.spinner('Working some magic...'):
-                label, labels_percents, attentions, tokens = inference_transformer(
-                    model_pickle_path=model_tokenizer_pickle_path,
-                    text_input=user_input, ids_labels=IDS_LABELS)
-                fig = plot_labels_confidence(labels_percentages=labels_percents, labels_coloring=LABELS_COLORS)
-                html_text = html_highlight_text(weights=attentions, tokens=tokens, color=LABELS_COLORS[label],
-                                                intensity=intensity)
+                          min_value=1, max_value=100, value=5)
 
-            st.markdown(f'### **{label}**')
+    if st.button('Get Prediction!'):
+        with st.spinner('Working some magic...'):
+            label, labels_percents, attentions, tokens = inference_transformer(
+                model_pickle_path=model_tokenizer_pickle_path,
+                text_input=user_input, ids_labels=IDS_LABELS)
+            fig = plot_labels_confidence(labels_percentages=labels_percents, labels_coloring=LABELS_COLORS)
+            html_text = html_highlight_text(weights=attentions, tokens=tokens, color=LABELS_COLORS[label],
+                                            intensity=intensity)
 
-            st.markdown('### Confidence:')
+        st.markdown(f'### **{label}**')
 
-            st.pyplot(fig)
+        st.markdown('### Confidence:')
 
-            st.markdown('### **Text with attention color:**')
-            st.markdown(html_text, unsafe_allow_html=True)
+        st.pyplot(fig)
 
-            # Try to free up any memory.
-            try:
-                # Delete previously created object.
-                del fig, html_text, label, labels_percents, attentions, tokens
-            except ValueError:
-                # Print message if not successful.
-                print('Not able to free memory.')
-            gc.collect()
+        st.markdown('### **Text with attention color:**')
+        st.markdown(html_text, unsafe_allow_html=True)
+
+        # Try to free up any memory.
+        try:
+            # Delete previously created object.
+            del fig, html_text, label, labels_percents, attentions, tokens
+        except ValueError:
+            # Print message if not successful.
+            print('Not able to free memory.')
+        gc.collect()
 
     return
 
