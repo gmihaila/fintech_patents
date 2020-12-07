@@ -21,8 +21,12 @@ import configparser
 import streamlit as st
 from pickle_models import pickle_pytorch_models
 from downloads_models import download_from_config
-from inference_modeling import inference_transformer
-from settings import (CONFIG_FILE, IDS_LABELS,
+from inference_modeling import (inference_transformer,
+                                )
+from graphics import (html_highlight_text,
+                      plot_labels_confidence,
+                      )
+from settings import (CONFIG_FILE, IDS_LABELS, LABELS_COLORS,
                       SAMPLE_ABSTRACT,
                       )
 
@@ -69,20 +73,27 @@ def app_modeling(config_file):
     st.markdown('### Patent Text:')
     user_input = st.text_area(label="Copy&Paste here:", value=default_patent, height=400)
 
-
+    st.markdown('### Attention intensity')
+    intensity = st.slider(label='Intensity of text color highlight in predictions:',
+                          min_value=1, max_value=100, value=1)
 
     if st.button('Get Prediction!'):
-        # label = make_prediction(model, tokenizer, text_input=user_input, ids_labels=IDS_LABELS)
-        label, labels_percents = inference_transformer(model_pickle_path=model_tokenizer_pickle_path,
-                                                       text_input=user_input, ids_labels=IDS_LABELS)
+        with st.spinner('Working some magic...'):
+            label, labels_percents, attentions, tokens = inference_transformer(
+                model_pickle_path=model_tokenizer_pickle_path,
+                text_input=user_input, ids_labels=IDS_LABELS)
+            fig = plot_labels_confidence(labels_percentages=labels_percents, labels_coloring=LABELS_COLORS)
+            html_text = html_highlight_text(weights=attentions, tokens=tokens, color=LABELS_COLORS[label],
+                                            intensity=intensity)
 
         st.markdown(f'### **{label}**')
 
-        # st.markdown('### Confidence:')
+        st.markdown('### Confidence:')
 
-        for label, percent in labels_percents.items():
-            custom_label = '_'.join(label.split())
-            st.markdown(f'![percentage](https://progress-bar.dev/{int(percent)}/?title={custom_label})')
+        st.pyplot(fig)
+
+        st.markdown('### **Text with attention color:**')
+        st.markdown(html_text, unsafe_allow_html=True)
 
     return
 
@@ -108,7 +119,7 @@ def preconfigure_app(arguments):
         os.mkdir(arguments.model_tokenizer_pickle_path)
 
     # Streamlit info
-    st.write('Downloading models from `mdels_config.ini`...')
+    st.write('Downloading models from `models_config.ini`...')
 
     # Download all pretrained models and updated config file
     download_from_config(arguments.path_model_config_file, arguments.path_models, use_streamlit=True)
@@ -182,7 +193,7 @@ if __name__ == '__main__':
     # Create config parser.
     config = configparser.ConfigParser()
 
-    # Check if app preconfiguraiton was ran
+    # Check if app preconfiguring was ran
     if not os.path.isfile(args.path_config_file):
         # If no config file is present - run preconfiguring
         preconfigure_app(arguments=args)

@@ -20,8 +20,14 @@ IDS_LABELS = {0: 'insurance',
               4: 'data analytics',
               5: 'non-fintech'}
 
+LABELS_COLORS = {'insurance': (250, 82, 82),
+                 'payments': (243, 72, 197),
+                 'investment': (72, 89, 243),
+                 'fraud': (72, 243, 226),
+                 'data analytics': (157, 243, 72),
+                 'non-fintech': (243, 157, 72)}
+
 SAMPLE_ABSTRACT = 'sample_patent_abstract.txt'
 
 # Default config file.
 CONFIG_FILE = 'config.ini'
-
