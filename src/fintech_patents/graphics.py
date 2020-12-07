@@ -17,8 +17,9 @@
 import html
 import numpy as np
 import matplotlib.pyplot as plt
-
-plt.rcParams.update({'font.size': 22})
+from matplotlib.backends.backend_agg import RendererAgg
+# Added fix from https://docs.streamlit.io/en/stable/deploy_streamlit_app.html
+_lock = RendererAgg.lock
 
 
 def html_highlight_text(weights, tokens, color=(135, 206, 250), intensity=1):
@@ -64,37 +65,38 @@ def html_highlight_text(weights, tokens, color=(135, 206, 250), intensity=1):
 
 def plot_labels_confidence(labels_percentages, labels_coloring):
     # Figure Size
+    with _lock:
+        plt.rcParams.update({'font.size': 22})
+        fig, ax = plt.subplots(figsize=(16, 9))
 
-    fig, ax = plt.subplots(figsize=(16, 9))
+        # Make the plot
+        for index, (label, percent) in enumerate(labels_percentages.items()):
+            plt.barh(index, percent, color=np.array(labels_coloring[label]) / 255,
+                     edgecolor='grey', label=label)
 
-    # Make the plot
-    for index, (label, percent) in enumerate(labels_percentages.items()):
-        plt.barh(index, percent, color=np.array(labels_coloring[label]) / 255,
-                 edgecolor='grey', label=label)
+        plt.yticks(list(range(len(labels_percentages) + 1)), labels_percentages.keys())
 
-    plt.yticks(list(range(len(labels_percentages) + 1)), labels_percentages.keys())
+        # Add padding between axes and labels
+        ax.xaxis.set_tick_params(pad=5)
+        ax.yaxis.set_tick_params(pad=10)
 
-    # Add padding between axes and labels
-    ax.xaxis.set_tick_params(pad=5)
-    ax.yaxis.set_tick_params(pad=10)
+        # Add x, y gridlines
+        ax.grid(b=True, color='grey',
+                linestyle='-.', linewidth=0.5,
+                alpha=0.2)
 
-    # Add x, y gridlines
-    ax.grid(b=True, color='grey',
-            linestyle='-.', linewidth=0.5,
-            alpha=0.2)
+        # Show top values
+        ax.invert_yaxis()
 
-    # Show top values
-    ax.invert_yaxis()
+        # Add annotation to bars
+        for i in ax.patches:
+            plt.text(i.get_width() + 0.2, i.get_y() + 0.5,
+                     f'{round((i.get_width()), 2)}%',
+                     fontsize=22, fontweight='bold',
+                     color='grey')
 
-    # Add annotation to bars
-    for i in ax.patches:
-        plt.text(i.get_width() + 0.2, i.get_y() + 0.5,
-                 f'{round((i.get_width()), 2)}%',
-                 fontsize=22, fontweight='bold',
-                 color='grey')
+        plt.xticks(list(range(0, 110, 10)))
+        ax.get_xaxis().set_visible(False)
+        plt.box(False)
 
-    plt.xticks(list(range(0, 110, 10)))
-    ax.get_xaxis().set_visible(False)
-    plt.box(False)
-
-    return fig
+        return fig
