@@ -18,6 +18,7 @@ import configparser
 import streamlit as st
 import gdown
 import os
+import sys
 import zipfile
 import argparse
 from settings import CONFIG_FILE
@@ -82,6 +83,7 @@ def download_from_config(path_config_file, path_downloaded_models, use_streamlit
 
                 # .zip does not have a main folder. Skip this section of config file.
                 print('Zip does not have folder!')
+                sys.stdout.flush()
                 continue
 
             # Add model path to section.
@@ -89,6 +91,7 @@ def download_from_config(path_config_file, path_downloaded_models, use_streamlit
 
             # Print info of model path.
             print(f'Unzip to: {os.path.join(path_downloaded_models, folder_name)}')
+            sys.stdout.flush()
 
             # Streamlit info
             if use_streamlit:
@@ -99,9 +102,11 @@ def download_from_config(path_config_file, path_downloaded_models, use_streamlit
                 os.remove(file_name)
             except OSError as e:
                 print("Error: %s : %s" % (file_name, e.strerror))
+                sys.stdout.flush()
 
         # Separation line.
         print('--------------------------------------------------------------------------------------')
+        sys.stdout.flush()
 
     # Writing updated configuration file with `model_path` added.
     with open(CONFIG_FILE, 'w') as configfile:
@@ -134,3 +139,4 @@ if __name__ == '__main__':
     download_from_config(args.path_config_file, args.path_models)
 
     print(f'\nFinished running `{__file__}`!')
+    sys.stdout.flush()

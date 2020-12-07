@@ -18,6 +18,7 @@
 import pickle
 import shutil
 import os
+import sys
 import argparse
 import configparser
 from transformers import (AutoConfig,
@@ -30,20 +31,24 @@ from settings import CONFIG_FILE
 
 def pickle_pytorch_models(model_path_, pickled_path):
     print(f'Loading configuration, tokenizer and model from: `{model_path_}`')
+    sys.stdout.flush()
     # Set seed for reproducibility,
     set_seed(123)
 
     # Get model configuration.
     print('Loading configuration...')
+    sys.stdout.flush()
     model_config = AutoConfig.from_pretrained(pretrained_model_name_or_path=model_path_,
                                               )
 
     # Get model's tokenizer.
     print('Loading tokenizer...')
+    sys.stdout.flush()
     tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_path_)
 
     # Get the actual model.
     print('Loading model...')
+    sys.stdout.flush()
     model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path=model_path_,
                                                                config=model_config)
 
@@ -53,12 +58,14 @@ def pickle_pytorch_models(model_path_, pickled_path):
         pickle.dump([tokenizer, model], handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     print(f'Model and Tokenizer pickled at:                  `{model_tokenizer_pickle_name_}`\n')
+    sys.stdout.flush()
 
     # Remove pretrained
     try:
         shutil.rmtree(model_path_)
     except OSError as e:
         print("Error: %s : %s" % (model_path_, e.strerror))
+        sys.stdout.flush()
 
     return model_tokenizer_pickle_name_
 
@@ -102,3 +109,4 @@ if __name__ == '__main__':
         config.write(configfile)
 
     print(f'\nFinished running `{__file__}`!')
+    sys.stdout.flush()

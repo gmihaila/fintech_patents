@@ -17,6 +17,7 @@
 import pickle
 import torch
 import gc
+import sys
 import numpy as np
 
 
@@ -64,6 +65,7 @@ def inference_transformer(model_pickle_path, text_input, ids_labels):
     except ValueError:
         # Print message if not successful.
         print('Not able to free memory.')
+        sys.stdout.flush()
     gc.collect()
 
     logits = outputs['logits'].detach().cpu().numpy()

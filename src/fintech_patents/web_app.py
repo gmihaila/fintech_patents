@@ -117,6 +117,7 @@ def app_modeling(config_file):
         except ValueError:
             # Print message if not successful.
             print('Not able to free memory.')
+            sys.stdout.flush()
         gc.collect()
 
     return
