@@ -31,6 +31,7 @@ from settings import (CONFIG_FILE, IDS_LABELS, LABELS_COLORS,
                       )
 import psutil
 import sys
+import gc
 
 
 def app_header():
@@ -45,20 +46,20 @@ def app_header():
     # Description
     # st.write('More details go here...')
     
-    st.write('/ncheck resouces')
-    st.write('python verison')
-    st.write(sys.version)
+#     st.write('/ncheck resouces')
+#     st.write('python verison')
+#     st.write(sys.version)
     
-    st.write('virtual_memory')
-    st.write(psutil.virtual_memory())
+#     st.write('virtual_memory')
+#     st.write(psutil.virtual_memory())
     
-    st.write('disk_partitions')
-    st.write(psutil.disk_partitions())
+#     st.write('disk_partitions')
+#     st.write(psutil.disk_partitions())
     
-    st.write('disk_usage')
-    st.write(psutil.disk_usage('/'))
+#     st.write('disk_usage')
+#     st.write(psutil.disk_usage('/'))
     
-    st.write('end resouces/n')
+#     st.write('end resouces/n')
 
     return
 
@@ -111,6 +112,12 @@ def app_modeling(config_file):
 
         st.markdown('### **Text with attention color:**')
         st.markdown(html_text, unsafe_allow_html=True)
+        
+        try:
+          del fig, html_text, label, labels_percents, attentions, tokens
+          gc.collect()
+         except:
+          print('nothing to clean')
 
     return
 
@@ -183,8 +190,6 @@ def preconfigure_app(arguments):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     
-    
-   
     # Start with app header.
     app_header()
 
