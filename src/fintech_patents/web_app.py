@@ -45,21 +45,18 @@ def app_header():
     # st.subheader('Make predictions')
     # Description
     # st.write('More details go here...')
-    
-#     st.write('/ncheck resouces')
-#     st.write('python verison')
-#     st.write(sys.version)
-    
-    st.write('virtual_memory')
-    st.write(psutil.virtual_memory())
-    
-#     st.write('disk_partitions')
-#     st.write(psutil.disk_partitions())
-    
-#     st.write('disk_usage')
-#     st.write(psutil.disk_usage('/'))
-    
-#     st.write('end resouces/n')
+
+    # Check memory usage
+    # st.write('/ncheck resouces')
+    # st.write('python verison')
+    # st.write(sys.version)
+    # st.write('virtual_memory')
+    # st.write(psutil.virtual_memory())
+    # st.write('disk_partitions')
+    # st.write(psutil.disk_partitions())
+    # st.write('disk_usage')
+    # st.write(psutil.disk_usage('/'))
+    # st.write('end resouces/n')
 
     return
 
@@ -93,7 +90,7 @@ def app_modeling(config_file):
 
     st.markdown('### Attention intensity')
     intensity = st.slider(label='Intensity of text color highlight in predictions:',
-                          min_value=1, max_value=100, value=1)
+                          min_value=1, max_value=100, value=10)
 
     if st.button('Get Prediction!'):
         with st.spinner('Working some magic...'):
@@ -112,12 +109,15 @@ def app_modeling(config_file):
 
         st.markdown('### **Text with attention color:**')
         st.markdown(html_text, unsafe_allow_html=True)
-        
+
+        # Try to free up any memory.
         try:
-          del fig, html_text, label, labels_percents, attentions, tokens
-        except:
-          print('nothing to clean')
-    gc.collect()
+            # Delete previously created object.
+            del fig, html_text, label, labels_percents, attentions, tokens
+        except ValueError:
+            # Print message if not successful.
+            print('Not able to free memory.')
+        gc.collect()
 
     return
 
@@ -189,7 +189,7 @@ def preconfigure_app(arguments):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    
+
     # Start with app header.
     app_header()
 

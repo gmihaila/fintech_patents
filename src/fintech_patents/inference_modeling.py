@@ -16,6 +16,7 @@
 
 import pickle
 import torch
+import gc
 import numpy as np
 
 
@@ -55,6 +56,15 @@ def inference_transformer(model_pickle_path, text_input, ids_labels):
     # outputs = model(**inputs)
     with torch.no_grad():
         outputs = model.forward(**inputs, output_attentions=True, return_dict=True)
+
+    # Try to free up any memory.
+    try:
+        # Delete previously created object.
+        del inputs
+    except ValueError:
+        # Print message if not successful.
+        print('Not able to free memory.')
+    gc.collect()
 
     logits = outputs['logits'].detach().cpu().numpy()
     attentions = outputs['attentions']
