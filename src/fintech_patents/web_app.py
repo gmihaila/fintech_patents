@@ -165,7 +165,25 @@ def preconfigure_app(arguments):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-
+    
+    import psutil
+    import sys
+    
+    print('/ncheck resouces')
+    print('python verison')
+    print(sys.version)
+    
+    print('virtual_memory')
+    print(psutil.virtual_memory())
+    
+    print('disk_partitions')
+    print(psutil.disk_partitions())
+    
+    print('disk_usage')
+    print(psutil.disk_usage('/'))
+    
+    print('end resouces/n')
+   
     # Start with app header.
     app_header()
 
