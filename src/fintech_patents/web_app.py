@@ -50,8 +50,8 @@ def app_header():
 #     st.write('python verison')
 #     st.write(sys.version)
     
-#     st.write('virtual_memory')
-#     st.write(psutil.virtual_memory())
+    st.write('virtual_memory')
+    st.write(psutil.virtual_memory())
     
 #     st.write('disk_partitions')
 #     st.write(psutil.disk_partitions())
