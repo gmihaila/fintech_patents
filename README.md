@@ -7,7 +7,7 @@
 
 This is the work done in the fintech patents classification project. 
 
-Check out our paper [here](https://github.com/gmihaila/fintech_patents/raw/main/identifying_fintech_innovations_using_bert.pdf).
+Check out our paper: [Identifying FinTech Innovations Using BERT](https://github.com/gmihaila/fintech_patents/raw/main/identifying_fintech_innovations_using_bert.pdf).
 
 <br>
 
